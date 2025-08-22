@@ -1,0 +1,26 @@
+services:
+  main:
+    container_name: main
+    volumes:
+      - type: bind
+        source: .
+        target: /workspace
+    working_dir: /workspace
+    ports:
+      - '8888:8888'
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM --platform=linux/amd64 ubuntu:22.04
+
+        ARG DEBIAN_FRONTEND=noninteractive
+        RUN apt-get update
+        RUN apt-get install -y ca-certificates
+        RUN apt-get install -y python3.11 python3.11-venv python3.11-dev
+        RUN apt-get install -y python3-pip
+
+        WORKDIR /workspace
+        COPY requirements.txt /workspace/requirements.txt
+        RUN python3.11 -m pip install --upgrade pip && python3.11 -m pip install -r requirements.txt
+
+        CMD ["tail", "-f", "/dev/null"]

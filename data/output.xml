@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Transfers>
+  <Transfer>
+    <ProductId>COMMODITIES_BUTTER</ProductId>
+    <AccFrom>ACCOUNT_1</AccFrom>
+    <AccTo>ACCOUNT_2</AccTo>
+    <Quantity>34.0</Quantity>
+    <TransferId>52e9c485-ff02-4035-8a03-0a3ce1f5e387</TransferId>
+  </Transfer>
+</Transfers>

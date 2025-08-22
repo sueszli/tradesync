@@ -1,0 +1,30 @@
+<Transfers>
+    <Transfer>
+        <ProductId>COMMODITIES_BUTTER</ProductId>
+        <PortfolioNumber>PORTFOLIO_2</PortfolioNumber>
+        <Quantity>16.0</Quantity>
+        <Side>BUY</Side>
+        <TransferId>18277b2f-9fcf-4dcc-a935-8fa590d20d06</TransferId>
+    </Transfer>
+    <Transfer>
+        <ProductId>COMMODITIES_BUTTER</ProductId>
+        <PortfolioNumber>PORTFOLIO_1</PortfolioNumber>
+        <Quantity>16.0</Quantity>
+        <Side>SELL</Side>
+        <TransferId>18277b2f-9fcf-4dcc-a935-8fa590d20d06</TransferId>
+    </Transfer>
+    <Transfer>
+        <ProductId>COMMODITIES_BUTTER</ProductId>
+        <PortfolioNumber>PORTFOLIO_3</PortfolioNumber>
+        <Quantity>18.0</Quantity>
+        <Side>BUY</Side>
+        <TransferId>7e26d013-9c55-4256-a79c-cd789723d094</TransferId>
+    </Transfer>
+    <Transfer>
+        <ProductId>COMMODITIES_BUTTER</ProductId>
+        <PortfolioNumber>PORTFOLIO_1</PortfolioNumber>
+        <Quantity>18.0</Quantity>
+        <Side>SELL</Side>
+        <TransferId>7e26d013-9c55-4256-a79c-cd789723d094</TransferId>
+    </Transfer>
+</Transfers>
