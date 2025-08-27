@@ -9,14 +9,6 @@ from validate import validate_optimization
 
 
 def calculate_net_balances(df: pl.DataFrame) -> dict:
-    """Calculate net balance per account for testing.
-
-    Args:
-        df: Transfer flows [ProductId, AccFrom, AccTo, Quantity]
-
-    Returns:
-        Dict[(product, account)] -> net_balance for non-zero accounts
-    """
     if len(df) == 0:
         return {}
 
@@ -33,16 +25,6 @@ def calculate_net_balances(df: pl.DataFrame) -> dict:
 
 
 def assert_balances_equal(balance1: dict, balance2: dict, tolerance: float = 1e-8):
-    """Assert that two balance dictionaries are equal within tolerance.
-
-    Args:
-        balance1: First balance dict [(product, account)] -> balance
-        balance2: Second balance dict with same structure
-        tolerance: Floating point comparison tolerance (default 1e-8)
-
-    Raises:
-        AssertionError: If balances don't match within tolerance
-    """
     all_keys = set(balance1.keys()) | set(balance2.keys())
 
     for key in all_keys:
@@ -52,10 +34,7 @@ def assert_balances_equal(balance1: dict, balance2: dict, tolerance: float = 1e-
 
 
 class TestOptimize:
-    """Test the optimization function."""
-
     def test_empty_dataframe(self):
-        """Test with empty input."""
         empty_df = pl.DataFrame(
             {"ProductId": [], "AccFrom": [], "AccTo": [], "Quantity": []},
             schema={"ProductId": pl.Utf8, "AccFrom": pl.Utf8, "AccTo": pl.Utf8, "Quantity": pl.Float64},
@@ -65,14 +44,12 @@ class TestOptimize:
         assert result.columns == ["ProductId", "AccFrom", "AccTo", "Quantity"]
 
     def test_single_transaction(self):
-        """Test with single transaction. Should remain unchanged."""
         df = pl.DataFrame({"ProductId": ["PROD1"], "AccFrom": ["ACC1"], "AccTo": ["ACC2"], "Quantity": [100.0]})
         result = _optimize(df)
         assert len(result) == 1
         assert result.row(0) == ("PROD1", "ACC1", "ACC2", 100.0)
 
     def test_bidirectional_netting(self):
-        """Test netting of bidirectional flows."""
         df = pl.DataFrame(
             {"ProductId": ["PROD1", "PROD1"], "AccFrom": ["ACC1", "ACC2"], "AccTo": ["ACC2", "ACC1"], "Quantity": [150.0, 50.0]}
         )
@@ -81,7 +58,6 @@ class TestOptimize:
         assert result.row(0) == ("PROD1", "ACC1", "ACC2", 100.0)
 
     def test_complete_cancellation(self):
-        """Test complete cancellation of equal opposing flows."""
         df = pl.DataFrame(
             {"ProductId": ["PROD1", "PROD1"], "AccFrom": ["ACC1", "ACC2"], "AccTo": ["ACC2", "ACC1"], "Quantity": [100.0, 100.0]}
         )
@@ -89,7 +65,6 @@ class TestOptimize:
         assert len(result) == 0
 
     def test_multiple_parallel_flows(self):
-        """Test aggregation of multiple flows in same direction."""
         df = pl.DataFrame(
             {
                 "ProductId": ["PROD1", "PROD1", "PROD1"],
@@ -103,7 +78,6 @@ class TestOptimize:
         assert result.row(0) == ("PROD1", "ACC1", "ACC2", 150.0)
 
     def test_complex_three_account_scenario(self):
-        """Test optimization with three accounts and various flows."""
         df = pl.DataFrame(
             {
                 "ProductId": ["PROD1"] * 6,
@@ -118,17 +92,15 @@ class TestOptimize:
         assert_balances_equal(original_balance, result_balance)
 
     def test_self_transfers_ignored(self):
-        """Test that A -> A transfers are properly handled."""
         df = pl.DataFrame(
             {"ProductId": ["PROD1", "PROD1"], "AccFrom": ["ACC1", "ACC1"], "AccTo": ["ACC1", "ACC2"], "Quantity": [50.0, 100.0]}
         )
         result = _optimize(df)
-        # Self-transfer should be ignored, only ACC1->ACC2 remains
+        # self-transfer should be ignored, only ACC1->ACC2 remains
         assert len(result) == 1
         assert result.row(0) == ("PROD1", "ACC1", "ACC2", 100.0)
 
     def test_floating_point_precision(self):
-        """Test handling of floating-point precision issues."""
         df = pl.DataFrame(
             {
                 "ProductId": ["PROD1", "PROD1"],
@@ -138,17 +110,14 @@ class TestOptimize:
             }
         )
         result = _optimize(df)
-        # Should detect this as effectively zero net flow
-        # If not cancelled out completely, should be very small
+        # should detect this as effectively zero net flow
+        # if not cancelled out completely, should be very small
         if len(result) > 0:
             assert abs(result["Quantity"][0]) < 1e-6
 
 
 class TestOptimizeBankTransactions:
-    """Test the multi-product optimization function."""
-
     def test_multiple_products_isolated(self):
-        """Test that different products are processed independently."""
         df = pl.DataFrame(
             {
                 "ProductId": ["PROD1", "PROD1", "PROD2", "PROD2"],
@@ -169,7 +138,6 @@ class TestOptimizeBankTransactions:
         assert prod2_result.row(0)[1:] == ("ACC1", "ACC2", 50.0)
 
     def test_product_with_zero_net_flow(self):
-        """Test products that cancel out completely."""
         df = pl.DataFrame(
             {
                 "ProductId": ["PROD1", "PROD1", "PROD2"],
@@ -185,10 +153,7 @@ class TestOptimizeBankTransactions:
 
 
 class TestValidateOptimization:
-    """Test the validation function."""
-
     def test_valid_optimization(self):
-        """Test validation passes for correct optimization."""
         original = pl.DataFrame(
             {"ProductId": ["PROD1", "PROD1"], "AccFrom": ["ACC1", "ACC2"], "AccTo": ["ACC2", "ACC1"], "Quantity": [150.0, 50.0]}
         )
@@ -196,7 +161,6 @@ class TestValidateOptimization:
         validate_optimization(original, optimized)
 
     def test_invalid_optimization_balance_mismatch(self):
-        """Test validation fails when balances don't match."""
         original = pl.DataFrame({"ProductId": ["PROD1"], "AccFrom": ["ACC1"], "AccTo": ["ACC2"], "Quantity": [100.0]})
         optimized = pl.DataFrame(
             {
@@ -214,22 +178,9 @@ class TestValidateOptimization:
 
 
 class TestPropertyBasedTesting:
-    """Property-based tests using hypothesis-like patterns."""
-
     def _generate_random_transactions(
         self, seed: int, num_products: int, num_accounts: int, num_transactions: int
     ) -> pl.DataFrame:
-        """Generate random transaction data for testing.
-
-        Args:
-            seed: Random seed for reproducible results
-            num_products: Number of unique products
-            num_accounts: Number of unique accounts
-            num_transactions: Total transactions to generate
-
-        Returns:
-            Random transfer DataFrame [ProductId, AccFrom, AccTo, Quantity]
-        """
         np.random.seed(seed)
 
         products = [f"PROD{i}" for i in range(num_products)]
@@ -255,7 +206,6 @@ class TestPropertyBasedTesting:
         return pl.DataFrame(data)
 
     def test_optimization_preserves_balances(self):
-        """Test that optimization always preserves net balances."""
         test_scenarios = [
             self._generate_random_transactions(seed=i, num_products=3, num_accounts=5, num_transactions=20) for i in range(10)
         ]
@@ -268,7 +218,6 @@ class TestPropertyBasedTesting:
             validate_optimization(df, result)
 
     def test_optimization_reduces_or_maintains_transaction_count(self):
-        """Test that optimization never increases transaction count."""
         test_scenarios = [
             self._generate_random_transactions(seed=i, num_products=2, num_accounts=4, num_transactions=15) for i in range(10)
         ]
@@ -279,10 +228,7 @@ class TestPropertyBasedTesting:
 
 
 class TestEdgeCases:
-    """Test various edge cases and error conditions."""
-
     def test_very_large_quantities(self):
-        """Test with very large quantity values."""
         df = pl.DataFrame(
             {"ProductId": ["PROD1", "PROD1"], "AccFrom": ["ACC1", "ACC2"], "AccTo": ["ACC2", "ACC1"], "Quantity": [1e15, 0.5e15]}
         )
@@ -291,7 +237,6 @@ class TestEdgeCases:
         assert abs(result["Quantity"][0] - 0.5e15) < 1e10  # Within reasonable precision
 
     def test_very_small_quantities(self):
-        """Test with very small quantity values."""
         df = pl.DataFrame(
             {"ProductId": ["PROD1", "PROD1"], "AccFrom": ["ACC1", "ACC2"], "AccTo": ["ACC2", "ACC1"], "Quantity": [1e-10, 0.9e-10]}
         )
@@ -301,7 +246,6 @@ class TestEdgeCases:
             assert result["Quantity"][0] > 0
 
     def test_many_accounts_star_pattern(self):
-        """Test optimization with many accounts in a star pattern."""
         # One central account connected to many others
         num_outer_accounts = 20
         df_data = []
@@ -323,10 +267,7 @@ class TestEdgeCases:
 
 
 class TestEndToEndFlow:
-    """Test the complete flow from XML/JSON to optimized output."""
-
     def test_large_dataset_performance(self):
-        """Test performance with a larger synthetic dataset."""
         # Generate a large dataset
         large_dataset = self._generate_large_dataset(num_products=50, num_accounts=20, num_transactions=10000)
 
@@ -350,7 +291,6 @@ class TestEndToEndFlow:
         print(f"Reduced to {len(result)} transactions ({reduction_ratio * 100:.1f}% reduction)")
 
     def test_memory_usage_large_dataset(self):
-        """Test memory usage remains reasonable for large datasets."""
         import os
 
         import psutil
@@ -375,7 +315,6 @@ class TestEndToEndFlow:
         print(f"Memory increase: {memory_increase:.1f}MB for {len(large_dataset)} transactions")
 
     def test_parquet_file_integration(self):
-        """Test integration with existing parquet files."""
         parquet_path = Path("tmp/transfers.parquet")
 
         if parquet_path.exists():
@@ -395,15 +334,6 @@ class TestEndToEndFlow:
             print(f"Parquet file: {original_count} -> {optimized_count} transactions")
 
     def _xml_to_bank_transfers(self, xml_content: str, accounts: dict) -> pl.DataFrame:
-        """Convert XML transfers to bank transfer format for testing.
-
-        Args:
-            xml_content: Raw XML string with transfer records
-            accounts: Portfolio name to account ID mapping
-
-        Returns:
-            Bank transfer DataFrame [ProductId, AccFrom, AccTo, Quantity]
-        """
         root = ET.fromstring(xml_content)
         transfers = []
 
@@ -442,16 +372,6 @@ class TestEndToEndFlow:
         return pl.DataFrame(transfers)
 
     def _generate_large_dataset(self, num_products: int, num_accounts: int, num_transactions: int) -> pl.DataFrame:
-        """Generate a large synthetic dataset for performance testing.
-
-        Args:
-            num_products: Number of unique products
-            num_accounts: Number of unique accounts
-            num_transactions: Total transactions to generate
-
-        Returns:
-            Large synthetic transfer DataFrame for benchmarking
-        """
         import random
 
         products = [f"PROD_{i:04d}" for i in range(num_products)]
@@ -474,10 +394,7 @@ class TestEndToEndFlow:
 
 
 class TestBenchmarking:
-    """Benchmarking tests for performance monitoring."""
-
     def test_benchmark_current_algorithm(self):
-        """Benchmark the current NetworkX-based algorithm."""
         dataset_sizes = [100, 500, 1000, 5000]
         results = []
 
@@ -498,14 +415,6 @@ class TestBenchmarking:
             print(f"Size {size}: {processing_time:.3f}s, {len(dataset)} -> {len(result)} transactions")
 
     def _generate_benchmark_dataset(self, size: int) -> pl.DataFrame:
-        """Generate standardized benchmark dataset.
-
-        Args:
-            size: Number of transactions to generate
-
-        Returns:
-            Standardized transfer DataFrame with fixed seed for reproducibility
-        """
         import random
 
         random.seed(42)  # Fixed seed for reproducible benchmarks
@@ -532,10 +441,7 @@ class TestBenchmarking:
 
 
 class TestRegressionSuite:
-    """Regression tests to catch optimization bugs."""
-
     def test_known_good_scenarios(self):
-        """Test scenarios with known correct outputs."""
         scenarios = [
             {
                 "name": "simple_bidirectional",
