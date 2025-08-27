@@ -20,26 +20,11 @@ EMPTY_RESULT = pl.DataFrame(
 
 
 def _dump_to_xml(df: pl.DataFrame, output: Path) -> None:
-    """Serialize optimized DataFrame to XML file with UUID transfer IDs.
-
-    Args:
-        df: Optimized transfers DataFrame with [ProductId, AccFrom, AccTo, Quantity]
-        output: Target XML file path
-    """
     df = df.with_columns(pl.lit(str(uuid.uuid4())).alias("TransferId"))
     output.write_text(df.to_pandas().to_xml(root_name="Transfers", row_name="Transfer", index=False))
 
 
 def _decycle(df: pl.DataFrame, search_depth=3) -> pl.DataFrame:
-    """Remove flow cycles up to search_depth using networkx, returns cycle-free flows.
-
-    Args:
-        df: Single-product flows DataFrame [ProductId, AccFrom, AccTo, Quantity]
-        search_depth: Max cycle length to detect (default 3 for perf)
-
-    Returns:
-        Cycle-free flows DataFrame, same schema as input
-    """
     if len(df) <= 2:
         return df
 
@@ -71,14 +56,6 @@ def _decycle(df: pl.DataFrame, search_depth=3) -> pl.DataFrame:
 
 
 def _optimize(product_df: pl.DataFrame) -> pl.DataFrame:
-    """Netting engine: aggregates parallel/bidirectional flows, then decycles. Single product only.
-
-    Args:
-        product_df: Single-product transfers [ProductId, AccFrom, AccTo, Quantity]
-
-    Returns:
-        Optimized transfers DataFrame with minimal flow count
-    """
     if len(product_df) == 0:
         return product_df
 
@@ -124,14 +101,6 @@ def _optimize(product_df: pl.DataFrame) -> pl.DataFrame:
 
 
 def _optimize_bank_transactions(df: pl.DataFrame) -> pl.DataFrame:
-    """Multi-product optimization dispatcher with progress tracking.
-
-    Args:
-        df: Multi-product bank transfers [ProductId, AccFrom, AccTo, Quantity]
-
-    Returns:
-        Concatenated optimized transfers across all products
-    """
     if len(df) == 0:
         return df
     results = [
@@ -143,15 +112,6 @@ def _optimize_bank_transactions(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def _get_bank_transfers(transfers: Path, accounts: Path) -> pl.DataFrame:
-    """Parse XML transfers + JSON accounts, reconstruct (SELL,BUY) pairs into bank flows.
-
-    Args:
-        transfers: XML file with transfer records [ProductId, PortfolioNumber, Side, TransferId, Quantity]
-        accounts: JSON mapping {portfolio_name: account_id}
-
-    Returns:
-        Bank transfer flows [ProductId, AccFrom, AccTo, Quantity]
-    """
     # join tables on portfolio name as key
     accounts = pl.LazyFrame(
         [{"PortfolioNumber": portfolio, "Account": account} for portfolio, account in json.loads(accounts.read_text()).items()]
