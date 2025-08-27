@@ -64,12 +64,10 @@ def validate_optimization(original_df: pl.DataFrame, optimized_df: pl.DataFrame)
     optimized_balances = _calc_net_balance_per_account(optimized_df)
     comparison = (
         original_balances.join(optimized_balances, on=["ProductId", "AccFrom"], how="full", suffix="_opt")
-        .with_columns(
-            [
-                pl.col("NetBalance").fill_null(0),
-                pl.col("NetBalance_opt").fill_null(0),
-            ]
-        )
+        .with_columns([
+            pl.col("NetBalance").fill_null(0),
+            pl.col("NetBalance_opt").fill_null(0),
+        ])
         .with_columns([(pl.col("NetBalance") - pl.col("NetBalance_opt")).abs().alias("Difference")])
         .filter(pl.col("Difference") > 1e-8)
         .sort(["ProductId", "AccFrom"])
@@ -97,12 +95,10 @@ def _calc_net_balance_per_account(df: pl.DataFrame) -> pl.DataFrame:
     return (
         all_accounts.join(out_flows, on=["ProductId", "Account"], how="left")
         .join(in_flows, on=["ProductId", "Account"], how="left")
-        .with_columns(
-            [
-                pl.col("OutFlow").fill_null(0),
-                pl.col("InFlow").fill_null(0),
-            ]
-        )
+        .with_columns([
+            pl.col("OutFlow").fill_null(0),
+            pl.col("InFlow").fill_null(0),
+        ])
         .with_columns([(pl.col("InFlow") - pl.col("OutFlow")).alias("NetBalance")])
         .filter(pl.col("NetBalance").abs() > 1e-10)
         .select(["ProductId", pl.col("Account").alias("AccFrom"), "NetBalance"])
