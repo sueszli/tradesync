@@ -7,14 +7,6 @@ from loguru import logger
 
 
 def validate_xml_structure(transfers_path: Path):
-    """Validate XML transfer file structure and required fields.
-
-    Args:
-        transfers_path: XML file with transfer records
-
-    Raises:
-        ValueError: Invalid XML structure or missing required fields
-    """
     try:
         tree = ET.parse(transfers_path)
         root = tree.getroot()
@@ -47,14 +39,6 @@ def validate_xml_structure(transfers_path: Path):
 
 
 def validate_json_structure(accounts_path: Path):
-    """Validate JSON accounts mapping structure.
-
-    Args:
-        accounts_path: JSON file with {portfolio_name: account_id} mapping
-
-    Raises:
-        ValueError: Invalid JSON structure or empty/invalid mappings
-    """
     try:
         data = json.loads(accounts_path.read_text())
         if not isinstance(data, dict):
@@ -75,15 +59,6 @@ def validate_json_structure(accounts_path: Path):
 
 
 def validate_optimization(original_df: pl.DataFrame, optimized_df: pl.DataFrame):
-    """Validate optimization preserves net account balances and total magnitude.
-
-    Args:
-        original_df: Original transfer flows [ProductId, AccFrom, AccTo, Quantity]
-        optimized_df: Optimized transfer flows with same schema
-
-    Raises:
-        ValueError: Net flows don't match or total magnitude changed
-    """
     # validate that net flows (net balance of any account for any product) are preserved after optimization
     original_balances = _calc_net_balance_per_account(original_df)
     optimized_balances = _calc_net_balance_per_account(optimized_df)
@@ -112,14 +87,6 @@ def validate_optimization(original_df: pl.DataFrame, optimized_df: pl.DataFrame)
 
 
 def _calc_net_balance_per_account(df: pl.DataFrame) -> pl.DataFrame:
-    """Calculate net balance per (product, account) pair from transfer flows.
-
-    Args:
-        df: Transfer flows [ProductId, AccFrom, AccTo, Quantity]
-
-    Returns:
-        Net balances [ProductId, AccFrom, NetBalance] for non-zero accounts
-    """
     from_accounts = df.select(["ProductId", pl.col("AccFrom").alias("Account")]).unique()
     to_accounts = df.select(["ProductId", pl.col("AccTo").alias("Account")]).unique()
     all_accounts = pl.concat([from_accounts, to_accounts]).unique()
