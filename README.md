@@ -14,11 +14,9 @@
 ⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀  ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝      
 ⠀⠀⠀⠀⠀⠙⠻⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠟⠋⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠛⠛⠛⠛⠉⠉⠉⠁⠀⠀⠀⠀⠀
-```
 
 # Usage
 
-```bash
 make help
 
 make docker
@@ -38,8 +36,6 @@ docker compose exec main python3.11 \
 # 2025-08-23 18:49:07.292 | INFO     | __main__:run:158 - Optimized to 6621 bank transfers (Removed 99.43%)
 # 2025-08-23 18:49:07.352 | INFO     | validate:validate_optimization:86 - Net account balances are preserved correctly!
 ```
-
-# Design Rationale
 
 In this transfer optimization problem you've got this set $T = \{(p,a,b,q) \mid p \in \text{Products}, a \to b \in \text{Accounts}, q \in \mathbb{R}^+\}$ and you want to shrink it to $T'$ while keeping all the account balances intact. For every product-account pair $(p,a)$, the total inflows $\sum_{(p,\_,a,q) \in T} q$ and outflows $\sum_{(p,a,\_,q) \in T} q$ have to match between $T$ and $T'$.
 
