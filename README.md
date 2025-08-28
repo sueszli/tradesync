@@ -14,9 +14,6 @@
 ⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀  ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝      
 ⠀⠀⠀⠀⠀⠙⠻⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠟⠋⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠛⠛⠛⠛⠉⠉⠉⠁⠀⠀⠀⠀⠀
-
-    Cut bank fees by replacing portfolio transfers with
-    the smallest number of bank transactions needed to reach the same net positions.
 ```
 
 # Usage
