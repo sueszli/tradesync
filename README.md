@@ -35,6 +35,8 @@ docker compose exec main python3.11 \
 # 2025-08-23 18:49:07.352 | INFO     | validate:validate_optimization:86 - Net account balances are preserved correctly!
 ```
 
+# How it works
+
 In this transfer optimization problem you've got this set $T = \{(p,a,b,q) \mid p \in \text{Products}, a \to b \in \text{Accounts}, q \in \mathbb{R}^+\}$ and you want to shrink it to $T'$ while keeping all the account balances intact. For every product-account pair $(p,a)$, the total inflows $\sum_{(p,\_,a,q) \in T} q$ and outflows $\sum_{(p,a,\_,q) \in T} q$ have to match between $T$ and $T'$.
 
 The solution uses three optimization passes. Flow aggregation merges identical transfers - multiple $(p,a,b,q_i)$ tuples with the same route collapse into $(p,a,b,\sum q_i)$. Bidirectional netting handles flows going both ways between accounts - replace $(p,a,b,q_{ab})$ and $(p,b,a,q_{ba})$ with $(p,a,b,\max(0,q_{ab}-q_{ba}))$. The interesting part is cycle elimination. For each product $p$, I build a directed graph $G_p = (V_p, E_p)$ where vertices are accounts and edges $(a,b,q)$ represent transfers. I hunt for cycles $C = [a_1 \to a_2 \to \ldots \to a_k \to a_1]$ and drain them by the bottleneck flow $q_{\text{min}} = \min_{i} q_{a_i \to a_{i+1}}$. Each edge in the cycle gets reduced by $q_{\text{min}}$, and zero-weight edges get pruned.
