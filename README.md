@@ -14,9 +14,8 @@
 ⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀  ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝      
 ⠀⠀⠀⠀⠀⠙⠻⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠿⠟⠋⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠉⠉⠉⠛⠛⠛⠛⠉⠉⠉⠁⠀⠀⠀⠀⠀
-```
 
-```
+
 make docker
 docker compose exec main pip install polars-lts-cpu
 docker compose exec main python3.11 \
